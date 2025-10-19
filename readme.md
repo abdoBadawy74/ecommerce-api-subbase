@@ -1,226 +1,281 @@
-# 🧾 ECOMMERCE API DOCUMENTATION (Supabase)
+# 🛒 Ecommerce API Documentation
 
-**Base URL:**  
-```
-https://bsvwzsxojblzgcscsbsn.supabase.co/rest/v1
+**Base URL:** `https://ndmfkgcmkiforsnevdqw.supabase.co`  
+**Auth Version:** Supabase Auth v1  
+**Database:** Supabase PostgREST
+
+---
+
+## 🔐 Authentication
+
+### ▶️ Sign Up  
+**POST** `/auth/v1/signup`  
+
+Registers a new user.
+
+**Body:**
+```json
+{
+  "email": "user@example.com",
+  "password": "12345678"
+}
 ```
 
-**Headers (يجب تضمينها في كل طلب):**
-```http
-apikey: <YOUR_ANON_KEY>
-Authorization: Bearer <YOUR_ANON_KEY>
+**Response (201):**
+```json
+{
+  "user": {
+    "id": "uuid",
+    "email": "user@example.com",
+    "role": "authenticated"
+  },
+  "session": {
+    "access_token": "string",
+    "refresh_token": "string"
+  }
+}
+```
+
+---
+
+### ▶️ Sign In  
+**POST** `/auth/v1/token?grant_type=password`  
+
+**Body:**
+```json
+{
+  "email": "user@example.com",
+  "password": "12345678"
+}
+```
+
+**Response (200):**
+```json
+{
+  "access_token": "string",
+  "token_type": "bearer",
+  "expires_in": 3600,
+  "user": {
+    "id": "uuid",
+    "email": "user@example.com"
+  }
+}
+```
+
+---
+
+## 👤 Profiles
+
+### ▶️ Get Current User Profile  
+**GET** `/rest/v1/profiles?id=eq.{USER_ID}`  
+
+**Headers:**
+```
+apikey: <ANON_KEY>
+Authorization: Bearer <USER_ACCESS_TOKEN>
+```
+
+**Response (200):**
+```json
+[
+  {
+    "id": "uuid",
+    "email": "user@example.com",
+    "role": "user",
+    "created_at": "2025-10-19T12:00:00Z"
+  }
+]
+```
+
+---
+
+### ▶️ Update Profile (User Only)  
+**PATCH** `/rest/v1/profiles?id=eq.{USER_ID}`  
+
+**Body:**
+```json
+{
+  "full_name": "Ahmed Ali"
+}
+```
+
+**Response (200):**
+```json
+{
+  "id": "uuid",
+  "email": "user@example.com",
+  "role": "user",
+  "full_name": "Ahmed Ali"
+}
+```
+
+---
+
+## 🛍️ Products
+
+### ▶️ Get All Products (Public)  
+**GET** `/rest/v1/products`  
+
+**Response (200):**
+```json
+[
+  {
+    "id": 1,
+    "name": "T-Shirt",
+    "price": 250,
+    "description": "Cotton T-shirt",
+    "image_url": "https://...",
+    "created_at": "2025-10-19T12:00:00Z"
+  }
+]
+```
+
+---
+
+### ▶️ Get Single Product  
+**GET** `/rest/v1/products?id=eq.{PRODUCT_ID}`
+
+**Response (200):**
+```json
+[
+  {
+    "id": 1,
+    "name": "T-Shirt",
+    "price": 250,
+    "description": "Cotton T-shirt",
+    "image_url": "https://..."
+  }
+]
+```
+
+---
+
+## ⚙️ Admin Endpoints
+
+> 🧠 Requires user role = "admin"
+
+### ▶️ Add Product  
+**POST** `/rest/v1/products`
+
+**Headers:**
+```
+apikey: <SERVICE_ROLE_KEY>
+Authorization: Bearer <ADMIN_ACCESS_TOKEN>
 Content-Type: application/json
 ```
 
----
-
-## 🧍‍♂️ 1. Authentication (Supabase Auth)
-
-### 🔹 Sign Up
-**POST** `/auth/v1/signup`
-
 **Body:**
 ```json
 {
-  "email": "user@example.com",
-  "password": "12345678"
+  "name": "New Product",
+  "price": 500,
+  "description": "High-quality item",
+  "image_url": "https://..."
 }
 ```
 
-### 🔹 Sign In
-**POST** `/auth/v1/token?grant_type=password`
-
-**Body:**
+**Response (201):**
 ```json
 {
-  "email": "user@example.com",
-  "password": "12345678"
+  "id": 12,
+  "name": "New Product",
+  "price": 500,
+  "description": "High-quality item",
+  "image_url": "https://..."
 }
 ```
 
 ---
 
-## 🛍️ 2. Products
+### ▶️ Update Product  
+**PATCH** `/rest/v1/products?id=eq.{PRODUCT_ID}`  
 
-### 🔹 Get All Products
-**GET** `/products`
+**Body:**
+```json
+{
+  "price": 600
+}
+```
 
-**Response:**
+**Response (200):**
+```json
+{
+  "id": 12,
+  "name": "New Product",
+  "price": 600
+}
+```
+
+---
+
+### ▶️ Delete Product  
+**DELETE** `/rest/v1/products?id=eq.{PRODUCT_ID}`  
+
+**Response (204):**
+```json
+null
+```
+
+---
+
+### ▶️ Get All Users (Admin)  
+**GET** `/rest/v1/profiles`  
+
+**Headers:**
+```
+apikey: <SERVICE_ROLE_KEY>
+Authorization: Bearer <ADMIN_ACCESS_TOKEN>
+```
+
+**Response (200):**
 ```json
 [
   {
     "id": "uuid",
-    "name": "هاتف سامسونج Galaxy S24",
-    "description": "هاتف ذكي بشاشة 6.5 إنش وكاميرا 50MP",
-    "price": 24999.99,
-    "image_url": "https://...",
-    "stock": 15,
-    "category": "Electronics"
-  }
-]
-```
-
-### 🔹 Create Product (Admin)
-**POST** `/products`
-
-**Body:**
-```json
-{
-  "name": "Keyboard Logitech K380",
-  "description": "Bluetooth keyboard",
-  "price": 899.99,
-  "image_url": "https://example.com/image.jpg",
-  "stock": 20,
-  "category": "Computers"
-}
-```
-
----
-
-## 🛒 3. Cart
-
-### 🔹 Get User Cart
-**GET** `/cart?user_id=eq.<user_id>`
-
-**Response:**
-```json
-[
+    "email": "admin@shop.com",
+    "role": "admin"
+  },
   {
     "id": "uuid",
-    "user_id": "uuid",
-    "product_id": "uuid",
-    "quantity": 2
-  }
-]
-```
-
-### 🔹 Add to Cart
-**POST** `/cart`
-
-**Body:**
-```json
-{
-  "user_id": "uuid",
-  "product_id": "uuid",
-  "quantity": 1
-}
-```
-
----
-
-## 📦 4. Orders
-
-### 🔹 Get User Orders
-**GET** `/orders?user_id=eq.<user_id>`
-
-**Response:**
-```json
-[
-  {
-    "id": "uuid",
-    "user_id": "uuid",
-    "total_price": 1299.00,
-    "status": "paid"
-  }
-]
-```
-
-### 🔹 Create Order
-**POST** `/orders`
-
-**Body:**
-```json
-{
-  "user_id": "uuid",
-  "total_price": 1299.00,
-  "status": "pending"
-}
-```
-
----
-
-## 📃 5. Order Items
-
-### 🔹 Get Items in an Order
-**GET** `/order_items?order_id=eq.<order_id>`
-
-**Response:**
-```json
-[
-  {
-    "id": "uuid",
-    "order_id": "uuid",
-    "product_id": "uuid",
-    "quantity": 2,
-    "price": 24999.99
+    "email": "user@shop.com",
+    "role": "user"
   }
 ]
 ```
 
 ---
 
-# ⚙️ React Integration
+## ⚛️ Using in React (Supabase Client)
 
-## 📁 1. Create Supabase Client
 ```js
-import { createClient } from '@supabase/supabase-js'
+import { createClient } from "@supabase/supabase-js";
 
-const SUPABASE_URL = 'https://bsvwzsxojblzgcscsbsn.supabase.co'
-const SUPABASE_KEY = '<YOUR_ANON_KEY>'
+const supabase = createClient(
+  "https://ndmfkgcmkiforsnevdqw.supabase.co",
+  process.env.REACT_APP_SUPABASE_KEY
+);
 
-export const supabase = createClient(SUPABASE_URL, SUPABASE_KEY)
+// Example: Fetch products
+const { data: products } = await supabase.from("products").select("*");
+
+// Example: Add new product (admin only)
+const { data, error } = await supabase
+  .from("products")
+  .insert([
+    { name: "Laptop", price: 1000, description: "Gaming Laptop" }
+  ]);
 ```
 
-## 🛍️ 2. Get Products
-```js
-import { supabase } from '../lib/supabaseClient'
+---
 
-export async function getProducts() {
-  const { data, error } = await supabase.from('products').select('*')
-  if (error) throw error
-  return data
-}
-```
+## 🧠 Notes
+- All requests must include proper `apikey` and `Authorization` headers.
+- Admins should use `service_role` key in backend or secure environment only.
+- RLS policies ensure only admins can modify or delete products.
+- Regular users can view products and edit only their own profile.
 
-## 🛒 3. Add to Cart
-```js
-export async function addToCart(userId, productId, quantity = 1) {
-  const { data, error } = await supabase
-    .from('cart')
-    .insert([{ user_id: userId, product_id: productId, quantity }])
-  if (error) throw error
-  return data
-}
-```
+---
 
-## 💻 4. Example React Component
-```jsx
-import React, { useEffect, useState } from 'react'
-import { getProducts } from './services/products'
-
-export default function ProductList() {
-  const [products, setProducts] = useState([])
-
-  useEffect(() => {
-    getProducts().then(setProducts)
-  }, [])
-
-  return (
-    <div className="grid grid-cols-3 gap-4 p-6">
-      {products.map((p) => (
-        <div key={p.id} className="border rounded-lg p-4 shadow">
-          <img src={p.image_url} alt={p.name} className="w-full h-48 object-cover rounded" />
-          <h2 className="font-bold mt-2">{p.name}</h2>
-          <p className="text-gray-600">{p.price} EGP</p>
-        </div>
-      ))}
-    </div>
-  )
-}
-```
-
-## 🧩 5. Environment Variables
-```
-REACT_APP_SUPABASE_URL=https://bsvwzsxojblzgcscsbsn.supabase.co
-REACT_APP_SUPABASE_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJzdnd6c3hvamJsemdjc2NzYnNuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA4NDY2NDQsImV4cCI6MjA3NjQyMjY0NH0.grbGc1eQETDSB6f1AG0gyLeFTxs68U0HyB3v8i4AGFY"
-```
+**Author:** Generated by ChatGPT  
+**Version:** 2.0.0  
+**Date:** 2025-10-19
